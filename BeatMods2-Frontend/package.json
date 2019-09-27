@@ -57,8 +57,10 @@
         "> 1%",
         "last 2 versions"
     ],
-    "gitHooks": {
-        "pre-commit": "lint-staged"
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
     },
     "lint-staged": {
         "*.{js,vue,ts}": [
