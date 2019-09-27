@@ -11,10 +11,10 @@ jobs:
       with:
         node-version: '12.x'
     - name: Install dependencies
-      working-directory: $GITHUB_WORKSPACE/BeatMods2/BeatMods2-Frontend/
+      working-directory: $GITHUB_WORKSPACE/BeatMods2-Frontend/
       run: yarn
     - name: Build project
-      working-directory: $GITHUB_WORKSPACE/BeatMods2/BeatMods2-Frontend/
+      working-directory: $GITHUB_WORKSPACE/BeatMods2-Frontend/
       run: yarn build
   check:
     runs-on: ubuntu-latest
@@ -26,10 +26,10 @@ jobs:
       with:
         node-version: '12.x'
     - name: Install dependencies
-      working-directory: $GITHUB_WORKSPACE/BeatMods2/BeatMods2-Frontend/
+      working-directory: $GITHUB_WORKSPACE/BeatMods2-Frontend/
       run: yarn
     - name: Run lints
-      working-directory: $GITHUB_WORKSPACE/BeatMods2/BeatMods2-Frontend/
+      working-directory: $GITHUB_WORKSPACE/BeatMods2-Frontend/
       run: yarn lint
     - name: Check for changed files
       run: git diff --exit-code
