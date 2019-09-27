@@ -10,7 +10,7 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: '12.x'
-    - run: ls -lAhR
+    - run: echo $GITHUB_WORKSPACE && pdw && ls -lAhR
     - name: Install dependencies
       working-directory: $GITHUB_WORKSPACE/BeatMods2-Frontend/
       run: yarn
@@ -26,7 +26,7 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: '12.x'
-    - run: ls -lAhR
+    - run: echo $GITHUB_WORKSPACE && pdw && ls -lAhR
     - name: Install dependencies
       working-directory: $GITHUB_WORKSPACE/BeatMods2-Frontend/
       run: yarn
