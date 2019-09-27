@@ -1,0 +1,40 @@
+@import "@primer/css";
+
+html,
+body,
+#app {
+    height: 100vh;
+    padding: 0px;
+    margin: 0px;
+}
+
+#app {
+    display: grid;
+    grid:
+        [hr-start] "header header" 64px [hr-end]
+        [br-start] "nav contents" auto [br-end]
+        / 256px auto;
+}
+
+#header {
+    grid-area: header;
+}
+
+#nav {
+    grid-area: nav;
+}
+
+#contents {
+    grid-area: contents;
+}
+
+// I stole that from @primer/css/navigation/sidenav.scss
+a.SideNav-item.router-link-active {
+    font-weight: $font-weight-semibold;
+    color: $text-gray-dark;
+    background-color: $bg-white;
+
+    &::before {
+        background-color: $orange-600;
+    }
+}

@@ -1,4 +1,4 @@
-# beatmods2-frontend
+# BeatMods 2
 
 ## Project setup
 

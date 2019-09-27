@@ -1,29 +1,31 @@
 <template>
     <div id="app">
-        <div id="nav">
-            <router-link to="/">Home</router-link> |
-            <router-link to="/about">About</router-link>
+        <header id="header" class="Header">
+            <div class="Header-item--full">
+                <router-link to="/" class="Header-link h4"
+                    >BeatMods 2</router-link
+                >
+            </div>
+            <div class="Header-item">
+                <router-link
+                    to="/login"
+                    class="Header-link border border-gray-dark px-2 py-1 rounded-1"
+                    >Sign in</router-link
+                >
+            </div>
+        </header>
+        <nav id="nav" class="SideNav border">
+            <router-link to="/" class="SideNav-item" exact>Home</router-link>
+            <router-link to="/about" class="SideNav-item" exact
+                >About</router-link
+            >
+        </nav>
+        <div id="contents">
+            <router-view />
         </div>
-        <router-view />
     </div>
 </template>
 
 <style lang="scss">
-#app {
-    font-family: "Avenir", Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
-}
-#nav {
-    padding: 30px;
-    a {
-        font-weight: bold;
-        color: #2c3e50;
-        &.router-link-exact-active {
-            color: #42b983;
-        }
-    }
-}
+@import "@/styles";
 </style>
