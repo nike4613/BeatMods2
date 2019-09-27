@@ -723,6 +723,20 @@
   resolved "https://registry.npmjs.org/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
+"@primer/css@^13.0.1":
+  version "13.0.1"
+  resolved "https://registry.npmjs.org/@primer/css/-/css-13.0.1.tgz#8755732664ff12be02b5592d7793088f79c34031"
+  integrity sha512-lYVOX3UFC0uwFpw/v6xYyT8dLhqzYhWE8bHsRyOg+0CbdGGWJlbASan2Ec2kQ22p3bIbt1KcnL+8gJOxEMWO/w==
+  dependencies:
+    "@primer/octicons" "^9.1.1"
+
+"@primer/octicons@^9.1.1":
+  version "9.1.1"
+  resolved "https://registry.npmjs.org/@primer/octicons/-/octicons-9.1.1.tgz#a72a59e8ec77521cc2eefb36c345f780a61c79fb"
+  integrity sha512-7EGM0+Kx39bIgaYr9bTCzFvBCxm+fqh/YJIoSns8zfCwss32ZJ2GDP3024UH709VQtM5cKFU4JcIYPHyGdSfIg==
+  dependencies:
+    object-assign "^4.1.1"
+
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
   resolved "https://registry.npmjs.org/@samverschueren/stream-to-observable/-/stream-to-observable-0.3.0.tgz#ecdf48d532c58ea477acfcab80348424f8d0662f"
