@@ -16,9 +16,7 @@
         </header>
         <nav id="nav" class="SideNav border">
             <router-link to="/" class="SideNav-item" exact>Home</router-link>
-            <router-link to="/about" class="SideNav-item" exact
-                >About</router-link
-            >
+            <router-link to="/mods" class="SideNav-item">Mods</router-link>
         </nav>
         <div id="contents">
             <router-view />

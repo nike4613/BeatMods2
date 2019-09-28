@@ -1,4 +1,5 @@
 @import "@primer/css";
+@import "@primer/octicons";
 
 html,
 body,
@@ -22,10 +23,12 @@ body,
 
 #nav {
     grid-area: nav;
+    overflow-y: auto;
 }
 
 #contents {
     grid-area: contents;
+    overflow-y: auto;
 }
 
 // I stole that from @primer/css/navigation/sidenav.scss
