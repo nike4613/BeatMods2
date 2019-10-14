@@ -14,7 +14,7 @@ body,
     grid:
         [hr-start] "header header" 64px [hr-end]
         [br-start] "nav contents" auto [br-end]
-        / 256px auto;
+        / 256px auto; // it seems that this makes the site unusable on small-ish screens
 }
 
 #header {
@@ -29,6 +29,13 @@ body,
 #contents {
     grid-area: contents;
     overflow-y: auto;
+}
+
+.octicon-mark-github {
+    display: inline;
+    vertical-align: middle;
+    position: relative;
+    bottom: 1px;
 }
 
 // I stole that from @primer/css/navigation/sidenav.scss

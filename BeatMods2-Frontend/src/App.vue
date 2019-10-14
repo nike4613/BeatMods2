@@ -10,7 +10,8 @@
                 <router-link
                     to="/login"
                     class="Header-link border border-gray-dark px-2 py-1 rounded-1"
-                    >Sign in</router-link
+                    ><Octicon iconName="mark-github" />&nbsp;Sign
+                    in</router-link
                 >
             </div>
         </header>
@@ -23,6 +24,18 @@
         </div>
     </div>
 </template>
+
+<script lang="ts">
+import Vue from "vue";
+import Octicon from "./components/Octicon.vue";
+import Component from "vue-class-component";
+@Component({
+    components: {
+        Octicon,
+    },
+})
+export default class App extends Vue {}
+</script>
 
 <style lang="scss">
 @import "@/styles";
