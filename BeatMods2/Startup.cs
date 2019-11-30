@@ -41,7 +41,7 @@ namespace BeatMods2
 
             services.AddMvc(options =>
             {
-
+                options.EnableEndpointRouting = false;
             })
             .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
         }
@@ -54,6 +54,8 @@ namespace BeatMods2
 #endif
 
             app.UseHttpsRedirection();
+
+            app.UseMvc();
         }
     }
 }

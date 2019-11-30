@@ -41,11 +41,10 @@ namespace BeatMods2.Models
                     v => v.ToString(),
                     v => new Version(v, false));
             model.Entity<Mod>()
-                .OwnsMany(m => m.DependsOn);
+                .OwnsMany(m => m.DependsOn, ModRange.Configure);
             model.Entity<Mod>()
-                .OwnsMany(m => m.ConflictsWith);
+                .OwnsMany(m => m.ConflictsWith, ModRange.Configure);
 
-            ModRange.ConfigureModel(model);
             Mod_Tag_Join.ConfigureModel(model);
         }
 
