@@ -13,7 +13,6 @@
 </template>
 
 <script lang="ts">
-import "./octicons";
 import Octicons from "@primer/octicons";
 import Vue from "vue";
 import { Component, Prop } from "vue-property-decorator";
