@@ -39,7 +39,11 @@ namespace BeatMods2
 
             services.AddDbContext<ModRepoContext>(builder);
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc(options =>
+            {
+
+            })
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,7 +60,10 @@ namespace BeatMods2
             }
 
             app.UseHttpsRedirection();
-            app.UseMvc();
+            app.UseMvc(routes =>
+            {
+                
+            });
         }
     }
 }

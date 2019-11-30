@@ -18,7 +18,7 @@ export default new Router({
             path: "/mods",
             name: "mods",
             component: () =>
-                import(/* webpackChunkName: "about" */ "./views/Mods.vue"),
+                import(/* webpackChunkName: "mods" */ "./views/Mods.vue"),
         },
         {
             path: "*",
