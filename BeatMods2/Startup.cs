@@ -32,10 +32,10 @@ namespace BeatMods2
 
             Action<DbContextOptionsBuilder> builder = null;
 
-            if (mode == "mssql")
-                builder = options => options.UseSqlServer(connectionString);
-            else if (mode == "postgres")
+            if (mode == "postgres")
                 builder = options => options.UseNpgsql(connectionString);
+            else
+                throw new Exception($"Invalid mode {mode}");
 
             services.AddDbContext<ModRepoContext>(builder);
 
@@ -43,27 +43,17 @@ namespace BeatMods2
             {
 
             })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
+#if DEBUG
+            app.UseDeveloperExceptionPage();
+#endif
 
             app.UseHttpsRedirection();
-            app.UseMvc(routes =>
-            {
-                
-            });
         }
     }
 }

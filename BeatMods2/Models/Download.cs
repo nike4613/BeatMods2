@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -29,10 +29,7 @@ namespace BeatMods2.Models
                     v => v.ToString(),
                     v => new Uri(v));
             model.Entity<Download>()
-                .Property(d => d.Hashes)
-                .HasConversion(
-                    v => v.ToString(),
-                    v => JObject.Parse(v));
+                .Property(d => d.Hashes);
         }
 
         [ForeignKey(nameof(Mod)), Required]
@@ -42,6 +39,6 @@ namespace BeatMods2.Models
         [Required]
         public Uri CdnFile { get; set; }
         [Required]
-        public JObject Hashes { get; set; }
+        public Dictionary<string, string> Hashes { get; set; }
     }
 }
