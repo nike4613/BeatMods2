@@ -61,6 +61,8 @@ namespace BeatMods2.Models
         [Required]
         public string Description { get; set; }
         [Required]
+        public string License { get; set; }
+        [Required]
         public Version Version { get; set; }
         public DateTime Uploaded { get; set; }
         public DateTime? Approved { get; set; }

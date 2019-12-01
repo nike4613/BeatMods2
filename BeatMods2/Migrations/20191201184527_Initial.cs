@@ -101,6 +101,7 @@ namespace BeatMods2.Migrations
                     AuthorId = table.Column<Guid>(nullable: false),
                     UploadedById = table.Column<Guid>(nullable: false),
                     Description = table.Column<string>(nullable: false),
+                    License = table.Column<string>(nullable: false),
                     Version = table.Column<string>(nullable: false),
                     Uploaded = table.Column<DateTime>(nullable: false),
                     Approved = table.Column<DateTime>(nullable: true),
@@ -187,7 +188,7 @@ namespace BeatMods2.Migrations
                     Mod = table.Column<Guid>(nullable: false),
                     Type = table.Column<string>(nullable: false),
                     CdnFile = table.Column<string>(nullable: false),
-                    Hashes = table.Column<string>(nullable: false),
+                    Hashes = table.Column<Dictionary<string, string>>(nullable: false),
                     ModUUID = table.Column<Guid>(nullable: true)
                 },
                 constraints: table =>
@@ -226,29 +227,41 @@ namespace BeatMods2.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ModRange",
+                name: "Mods_ConflictsWith",
                 columns: table => new
                 {
                     Id = table.Column<string>(nullable: false),
-                    VersionRange = table.Column<string>(nullable: false),
-                    ModUUID = table.Column<Guid>(nullable: true),
-                    ModUUID1 = table.Column<Guid>(nullable: true)
+                    ModUUID = table.Column<Guid>(nullable: false),
+                    VersionRange = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ModRange", x => x.Id);
+                    table.PrimaryKey("PK_Mods_ConflictsWith", x => new { x.ModUUID, x.Id });
                     table.ForeignKey(
-                        name: "FK_ModRange_Mods_ModUUID",
+                        name: "FK_Mods_ConflictsWith_Mods_ModUUID",
                         column: x => x.ModUUID,
                         principalTable: "Mods",
                         principalColumn: "UUID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Mods_DependsOn",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    ModUUID = table.Column<Guid>(nullable: false),
+                    VersionRange = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Mods_DependsOn", x => new { x.ModUUID, x.Id });
                     table.ForeignKey(
-                        name: "FK_ModRange_Mods_ModUUID1",
-                        column: x => x.ModUUID1,
+                        name: "FK_Mods_DependsOn_Mods_ModUUID",
+                        column: x => x.ModUUID,
                         principalTable: "Mods",
                         principalColumn: "UUID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -265,16 +278,6 @@ namespace BeatMods2.Migrations
                 name: "IX_Mod_Tag_Join_TagId",
                 table: "Mod_Tag_Join",
                 column: "TagId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ModRange_ModUUID",
-                table: "ModRange",
-                column: "ModUUID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ModRange_ModUUID1",
-                table: "ModRange",
-                column: "ModUUID1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mods_AuthorId",
@@ -314,7 +317,10 @@ namespace BeatMods2.Migrations
                 name: "Mod_Tag_Join");
 
             migrationBuilder.DropTable(
-                name: "ModRange");
+                name: "Mods_ConflictsWith");
+
+            migrationBuilder.DropTable(
+                name: "Mods_DependsOn");
 
             migrationBuilder.DropTable(
                 name: "News");
