@@ -27,7 +27,8 @@ namespace BeatMods2.Controllers
             public Uri AuthTarget;
         }
 
-        [HttpGet("login", Name = "Api_UserLogin"), AllowAnonymous]
+        public const string LoginName = "Api_UserLogin";
+        [HttpGet("login", Name = LoginName), AllowAnonymous]
         public ActionResult<LoginResult> Login()
         {
             var uri = new Uri(authSettings.BaseUri, authSettings.OauthAuthorize).ToString();
@@ -37,13 +38,14 @@ namespace BeatMods2.Controllers
                 { "allow_signup", "false" },
                 { "scope", string.Join(" ", authSettings.OauthScopes) },
                 { "state", "TODO: generate random state" }, // TODO: generate random state
-                { "redirect_uri", Url.AbsoluteRouteUrl("Api_UserLoginCallback") }
+                { "redirect_uri", Url.AbsoluteRouteUrl(LoginCallbackName) }
             });
 
             return new LoginResult { AuthTarget = new Uri(uri) };
         }
 
-        [HttpGet("login_callback", Name = "Api_UserLoginCallback"), AllowAnonymous]
+        public const string LoginCallbackName = "Api_UserLoginCallback";
+        [HttpGet("login_callback", Name = LoginCallbackName), AllowAnonymous]
         public IActionResult LoginComplete()
         {
             // TODO
