@@ -13,7 +13,7 @@ namespace BeatMods2.Models
             model.Entity<User>()
                 .HasAlternateKey(d => d.Name); // should be unique on target mod and type
             model.Entity<User>()
-                .HasAlternateKey(d => d.GithubId); // should be unique on target mod and type
+                .HasAlternateKey(d => d.GithubToken); // should be unique on target mod and type
 
             User_Group_Join.ConfigureModel(model);
         }
@@ -26,7 +26,7 @@ namespace BeatMods2.Models
         [Required]
         public string Profile { get; set; }
         [Required]
-        public string GithubId { get; set; }
+        public string GithubToken { get; set; }
 
         public ICollection<User_Group_Join> Groups { get; set; }
     }

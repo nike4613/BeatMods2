@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
+using BeatMods2.Configuration;
 using BeatMods2.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +39,16 @@ namespace BeatMods2
 
             Action<DbContextOptionsBuilder> builder = null;
 
+            var ghAuthSettings = new GitHubAuth();
+            Configuration.Bind("GithubAuth", ghAuthSettings);
+            services.AddSingleton(ghAuthSettings);
+
+            services
+                .AddSingleton<IActionContextAccessor, ActionContextAccessor>()
+                .AddScoped(x => x
+                    .GetRequiredService<IUrlHelperFactory>()
+                    .GetUrlHelper(x.GetRequiredService<IActionContextAccessor>().ActionContext));
+
             if (mode == "postgres")
                 builder = options => options.UseNpgsql(connectionString);
             else
@@ -39,11 +56,13 @@ namespace BeatMods2
 
             services.AddDbContext<ModRepoContext>(builder);
 
-            services.AddMvc(options =>
-            {
-                options.EnableEndpointRouting = false;
-            })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => Configuration.Bind("JwtSettings", options));
+
+            services.AddRouting();
+
+            services.AddControllers()
+                .AddNewtonsoftJson();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,9 +72,17 @@ namespace BeatMods2
             app.UseDeveloperExceptionPage();
 #endif
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
-            app.UseMvc();
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(rb =>
+            {
+                rb.MapControllers();
+            });
         }
     }
 }
