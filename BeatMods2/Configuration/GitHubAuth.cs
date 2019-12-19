@@ -7,7 +7,11 @@ namespace BeatMods2.Configuration
 {
     public class GitHubAuth
     {
+        public const string LoginClient = "GitHub_Login";
+        public const string ApiClient = "GitHub_Api";
+
         public Uri BaseUri { get; set; }
+        public Uri ApiUri { get; set; }
         public string OauthAuthorize { get; set; }
         public string OauthAccess { get; set; }
         public string ClientId { get; set; }

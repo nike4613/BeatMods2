@@ -12,7 +12,7 @@ namespace BeatMods2.Controllers
     public class ValuesController : Controller
     {
         // GET api/values
-        [HttpGet, Authorize]
+        [HttpGet(Name = "Page_LoginComplete"), Authorize]
         public ActionResult<IEnumerable<string>> Get()
         {
             return new string[] { "value1", "value2" };

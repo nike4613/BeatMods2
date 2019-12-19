@@ -24,7 +24,7 @@ namespace BeatMods2.Controllers
         public RoutesResponse GetRoutes()
             => new RoutesResponse
             {
-                Login = Url.RouteUrl(UsersController.LoginName)
+                Login = Url.AbsoluteRouteUrl(UsersController.LoginName)
             };
     }
 }

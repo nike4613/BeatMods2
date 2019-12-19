@@ -43,6 +43,19 @@ namespace BeatMods2
             Configuration.Bind("GithubAuth", ghAuthSettings);
             services.AddSingleton(ghAuthSettings);
 
+            services.AddHttpClient();
+            services.AddHttpClient(GitHubAuth.LoginClient, c =>
+            {
+                c.BaseAddress = ghAuthSettings.BaseUri;
+                c.DefaultRequestHeaders.Add("User-Agent", "BeatMods2");
+            });
+            services.AddHttpClient(GitHubAuth.ApiClient, c =>
+            {
+                c.BaseAddress = ghAuthSettings.ApiUri;
+                c.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+                c.DefaultRequestHeaders.Add("User-Agent", "BeatMods2");
+            });
+
             services
                 .AddSingleton<IActionContextAccessor, ActionContextAccessor>()
                 .AddScoped(x => x
