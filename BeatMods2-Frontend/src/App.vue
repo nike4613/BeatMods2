@@ -10,8 +10,7 @@
                 <router-link
                     to="/login"
                     class="Header-link border border-gray-dark px-2 py-1 rounded-1"
-                    ><Octicon iconName="mark-github" />&nbsp;Sign
-                    in</router-link
+                    ><Octicon iconName="mark-github" />Sign in</router-link
                 >
             </div>
         </header>
