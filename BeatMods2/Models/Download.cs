@@ -26,12 +26,13 @@ namespace BeatMods2.Models
             model.Entity<Download>()
                 .Property(d => d.CdnFile)
                 .HasConversion(
-                    v => v.ToString(),
+                    v => v!.ToString(),
                     v => new Uri(v));
             model.Entity<Download>()
                 .Property(d => d.Hashes);
         }
 
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         [ForeignKey(nameof(Mod)), Required]
         public Guid Mod { get; set; }
 
@@ -39,6 +40,7 @@ namespace BeatMods2.Models
         [Required]
         public Uri CdnFile { get; set; }
         [Required]
-        public Dictionary<string, string> Hashes { get; set; }
+        public Dictionary<string, string> Hashes { get; set; } = new Dictionary<string, string>();
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     }
 }

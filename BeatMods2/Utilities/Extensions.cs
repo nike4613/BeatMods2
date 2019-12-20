@@ -11,7 +11,7 @@ namespace BeatMods2.Utilities
         public static string AbsoluteRouteUrl(
             this IUrlHelper urlHelper,
             string routeName,
-            object routeValues = null) =>
+            object? routeValues = null) =>
                 urlHelper.RouteUrl(routeName, routeValues, urlHelper.ActionContext.HttpContext.Request.Scheme);
     }
 }

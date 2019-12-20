@@ -8,6 +8,7 @@ namespace BeatMods2.Models
 {
     public class ModRepoContext : DbContext
     {
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ModRepoContext(DbContextOptions<ModRepoContext> options)
             : base(options)
         {
@@ -32,5 +33,6 @@ namespace BeatMods2.Models
         public DbSet<Mod> Mods { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GameVersion> GameVersions { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     }
 }

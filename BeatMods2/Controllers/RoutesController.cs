@@ -17,7 +17,7 @@ namespace BeatMods2.Controllers
     {
         public class RoutesResponse
         {
-            public string Login { get; set; }
+            public string Login { get; set; } = "";
         }
 
         [HttpGet]

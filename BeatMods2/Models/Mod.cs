@@ -21,6 +21,7 @@ namespace BeatMods2.Models
 
     public class Mod
     {
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         internal static void ConfigureModel(ModelBuilder model)
         {
             model.Entity<Mod>()
@@ -55,9 +56,9 @@ namespace BeatMods2.Models
         [Required]
         public string Name { get; set; }
         [Required]
-        public User Author { get; set; }
+        public User? Author { get; set; }
         [Required]
-        public User UploadedBy { get; set; }
+        public User? UploadedBy { get; set; }
         [Required]
         public string Description { get; set; }
         [Required]
@@ -68,15 +69,16 @@ namespace BeatMods2.Models
         public DateTime? Approved { get; set; }
         public Approval ApprovalState { get; set; }
         [Required]
-        public GameVersion GameVersion { get; set; }
+        public GameVersion? GameVersion { get; set; }
         public System System { get; set; }
         public bool Required { get; set; }
 
-        public ICollection<ModRange> DependsOn { get; set; }
-        public ICollection<ModRange> ConflictsWith { get; set; }
+        public ICollection<ModRange>? DependsOn { get; set; }
+        public ICollection<ModRange>? ConflictsWith { get; set; }
 
-        public ICollection<Download> Downloads { get; set; }
+        public ICollection<Download>? Downloads { get; set; }
         
-        public ICollection<Mod_Tag_Join> Tags { get; set; }
+        public ICollection<Mod_Tag_Join>? Tags { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     }
 }

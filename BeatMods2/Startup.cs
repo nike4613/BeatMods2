@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using BeatMods2.Configuration;
 using BeatMods2.Models;
+using BeatMods2.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -37,8 +39,6 @@ namespace BeatMods2
             var mode = Configuration.GetValue<string>("DBMode");
             var connectionString = Configuration.GetConnectionString("DefaultConnection");
 
-            Action<DbContextOptionsBuilder> builder = null;
-
             var ghAuthSettings = new GitHubAuth();
             Configuration.Bind("GithubAuth", ghAuthSettings);
             services.AddSingleton(ghAuthSettings);
@@ -61,6 +61,17 @@ namespace BeatMods2
                 .AddScoped(x => x
                     .GetRequiredService<IUrlHelperFactory>()
                     .GetUrlHelper(x.GetRequiredService<IActionContextAccessor>().ActionContext));
+            services.AddSingleton<SymmetricAlgorithm>(s => {
+                using var key = Utils.CoerceToSize(256 / 8, s.GetRequiredService<GitHubAuth>().StateEncKeyBytes);
+                return new AesManaged()
+                {
+                    Key = key.Memory.ToArray(),
+                    Mode = CipherMode.CBC,
+                    Padding = PaddingMode.PKCS7
+                };
+            });
+
+            Action<DbContextOptionsBuilder> builder;
 
             if (mode == "postgres")
                 builder = options => options.UseNpgsql(connectionString);
@@ -85,7 +96,7 @@ namespace BeatMods2
             app.UseDeveloperExceptionPage();
 #endif
 
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseRouting();
 
