@@ -13,10 +13,11 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Text;
 using System.Security.Cryptography;
+using System.Buffers;
 
 namespace BeatMods2.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController, Authorize]
     public class UsersController : ControllerBase
     {
@@ -29,6 +30,16 @@ namespace BeatMods2.Controllers
             authSettings = auth;
             httpFactory = httpFac;
             stateEncAlgo = encAlgo;
+            UpdateCurrentRandomData();
+        }
+
+        private string CurrentRandomData = "hello there, you shouldn't see this!~";
+        private void UpdateCurrentRandomData()
+        {
+            using var rand = new RNGCryptoServiceProvider();
+            using var mem = MemoryPool<byte>.Shared.Rent(16);
+            rand.GetBytes(mem.Memory.Span);
+            CurrentRandomData = Utils.BytesToString(mem.Memory.Span);
         }
 
         private class StateData
@@ -73,7 +84,9 @@ namespace BeatMods2.Controllers
                 { "client_id", authSettings.ClientId },
                 { "allow_signup", "false" },
                 { "scope", string.Join(" ", authSettings.OauthScopes) },
-                { "state", new StateData {
+                { "state", new StateData 
+                    {
+                        RandomState = CurrentRandomData,
                         ReturnTo = returnTo,
                         UserData = userData
                     }.Encrypt(stateEncAlgo) }, 

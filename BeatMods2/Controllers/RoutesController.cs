@@ -11,7 +11,7 @@ using BeatMods2.Utilities;
 
 namespace BeatMods2.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/routes")]
     [ApiController]
     public class RoutesController : ControllerBase
     {

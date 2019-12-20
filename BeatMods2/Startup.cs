@@ -67,7 +67,7 @@ namespace BeatMods2
                 {
                     Key = key.Memory.ToArray(),
                     Mode = CipherMode.CBC,
-                    Padding = PaddingMode.PKCS7
+                    Padding = PaddingMode.ISO10126
                 };
             });
 
