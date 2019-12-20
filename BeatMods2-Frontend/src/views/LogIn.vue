@@ -16,7 +16,6 @@ import Vue from "vue";
 import Octicon from "../components/Octicon.vue";
 import Component from "vue-class-component";
 import { getGithubAuthUrl } from "../api/login";
-import { Prop } from "vue-property-decorator";
 
 @Component({
     components: {
@@ -27,7 +26,6 @@ export default class LogIn extends Vue {
     mounted() {
         getGithubAuthUrl({
             returnTo: location.origin + "/login/complete",
-            userData: "kek",
         }).then((s) => (this.loginLink = s));
     }
 

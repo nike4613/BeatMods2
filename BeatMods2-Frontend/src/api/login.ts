@@ -6,7 +6,7 @@ export interface ILoginResponse {
 
 export interface ILoginRequest {
     returnTo: string;
-    userData: string | undefined;
+    userData?: string;
 }
 
 export function request(req: ILoginRequest): Promise<ILoginResponse> {
