@@ -98,6 +98,11 @@ namespace BeatMods2
 
             app.UseHttpsRedirection();
 
+            app.UseCors(p =>
+                p.AllowAnyOrigin()
+                 .AllowAnyMethod()
+                 .AllowAnyHeader());
+
             app.UseRouting();
 
             app.UseAuthentication();

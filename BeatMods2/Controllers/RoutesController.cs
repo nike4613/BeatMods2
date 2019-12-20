@@ -17,13 +17,16 @@ namespace BeatMods2.Controllers
     {
         public class RoutesResponse
         {
+            public string Routes { get; set; } = "";
             public string Login { get; set; } = "";
         }
 
-        [HttpGet]
+        public const string RoutesName = "Api_GetRoutes";
+        [HttpGet(Name = RoutesName)]
         public RoutesResponse GetRoutes()
             => new RoutesResponse
             {
+                Routes = Url.AbsoluteRouteUrl(RoutesName),
                 Login = Url.AbsoluteRouteUrl(UsersController.LoginName)
             };
     }
