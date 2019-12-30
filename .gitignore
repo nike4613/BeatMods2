@@ -336,6 +336,8 @@ ASALocalRun/
 # Local History for Visual Studio
 .localhistory/
 
+.vscode/
+
 # BeatPulse healthcheck temp database
 healthchecksdb
 /BeatMods2/appsettings.Development.json
