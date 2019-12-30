@@ -169,8 +169,8 @@ namespace BeatMods2.Controllers
                 failureCb = QueryHelpers.AddQueryString(failureCb, UserDataParam, stateDe.UserData);
             else if (failureCb == null) 
             {
-                successCb = QueryHelpers.AddQueryString(successCb, SuccessParam, "true");
                 failureCb = QueryHelpers.AddQueryString(successCb, SuccessParam, "false");
+                successCb = QueryHelpers.AddQueryString(successCb, SuccessParam, "true");
             }
 
             var client = httpFactory.CreateClient(GitHubAuth.LoginClient);
