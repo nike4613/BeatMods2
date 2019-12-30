@@ -13,9 +13,9 @@
 
 <script lang="ts">
 import Vue from "vue";
-import Octicon from "../components/Octicon.vue";
 import Component from "vue-class-component";
-import { getGithubAuthUrl } from "../api/login";
+import Octicon from "../../components/Octicon.vue";
+import { getGithubAuthUrl } from "../../api/login";
 
 @Component({
     components: {
@@ -25,7 +25,7 @@ import { getGithubAuthUrl } from "../api/login";
 export default class LogIn extends Vue {
     mounted() {
         getGithubAuthUrl({
-            returnTo: location.origin + "/login/complete",
+            success: location.origin + "/login/complete",
         }).then((s) => (this.loginLink = s));
     }
 
@@ -33,7 +33,7 @@ export default class LogIn extends Vue {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 #gh-login {
     font-size: 1.2em;
     color: black;
