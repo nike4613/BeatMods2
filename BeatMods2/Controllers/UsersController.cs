@@ -45,7 +45,8 @@ namespace BeatMods2.Controllers
         private class StateData
         {
             public string RandomState = "TODO";// TODO: generate random state and use it
-            public string? ReturnTo = null;
+            public string SuccessCallback = "";
+            public string? FailureCallback = null;
             public string? UserData = null;
 
             public string Encrypt(SymmetricAlgorithm algo)
@@ -76,7 +77,9 @@ namespace BeatMods2.Controllers
 
         public const string LoginName = "Api_UserLogin";
         [HttpGet("login", Name = LoginName), AllowAnonymous]
-        public IActionResult Login([FromQuery] string returnTo, [FromQuery] string? userData = null)
+        public IActionResult Login([FromQuery] string success, 
+            [FromQuery] string? failure = null, 
+            [FromQuery] string? userData = null)
         {
             var uri = new Uri(authSettings.BaseUri!, authSettings.OauthAuthorize).ToString();
             uri = QueryHelpers.AddQueryString(uri, new Dictionary<string, string>
@@ -87,7 +90,8 @@ namespace BeatMods2.Controllers
                 { "state", new StateData 
                     {
                         RandomState = CurrentRandomData,
-                        ReturnTo = returnTo,
+                        SuccessCallback = success,
+                        FailureCallback = failure,
                         UserData = userData
                     }.Encrypt(stateEncAlgo) }, 
                 { "redirect_uri", Url.AbsoluteRouteUrl(LoginCallbackName) }
@@ -121,11 +125,23 @@ namespace BeatMods2.Controllers
         [HttpGet("login_callback", Name = LoginCallbackName), AllowAnonymous]
         public async Task<IActionResult> LoginComplete([FromQuery] string code, [FromQuery] string state)
         {
+            const string UserDataParam = "data";
+            const string SuccessParam = "successful";
+
             var stateDe = StateData.Decrypt(stateEncAlgo, state);
 
-            var returnTarget = stateDe.ReturnTo ?? Url.RouteUrl("Page_LoginComplete");
+            var successCb = stateDe.SuccessCallback;
             if (stateDe.UserData != null)
-                returnTarget = QueryHelpers.AddQueryString(returnTarget, "data", stateDe.UserData);
+                successCb = QueryHelpers.AddQueryString(successCb, UserDataParam, stateDe.UserData);
+
+            var failureCb = stateDe.FailureCallback;
+            if (failureCb != null && stateDe.UserData != null)
+                failureCb = QueryHelpers.AddQueryString(failureCb, UserDataParam, stateDe.UserData);
+            else if (failureCb == null) 
+            {
+                successCb = QueryHelpers.AddQueryString(successCb, SuccessParam, "true");
+                failureCb = QueryHelpers.AddQueryString(successCb, SuccessParam, "false");
+            }
 
             var client = httpFactory.CreateClient(GitHubAuth.LoginClient);
             var request = new HttpRequestMessage(HttpMethod.Post, authSettings.OauthAccess)
@@ -152,7 +168,7 @@ namespace BeatMods2.Controllers
 
             // TODO: use github response
 
-            return Redirect(returnTarget);
+            return Redirect(successCb);
         }
     }
 }

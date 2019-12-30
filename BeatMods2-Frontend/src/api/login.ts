@@ -5,7 +5,8 @@ export interface ILoginResponse {
 }
 
 export interface ILoginRequest {
-    returnTo: string;
+    success: string;
+    failure?: string;
     userData?: string;
 }
 
