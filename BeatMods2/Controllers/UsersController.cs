@@ -86,11 +86,18 @@ namespace BeatMods2.Controllers
             public static StateData Decrypt(SymmetricAlgorithm algo, string input)
             {
                 var dec = algo.CreateDecryptor();
-                using var mstream = new MemoryStream(Utils.StringToByteArray(input));
-                using var cstream = new CryptoStream(mstream, dec, CryptoStreamMode.Read);
-                using var treader = new StreamReader(cstream);
-                using var jreader = new JsonTextReader(treader);
-                return new JsonSerializer().Deserialize<StateData>(jreader);
+                try
+                {
+                    using var mstream = new MemoryStream(Utils.StringToByteArray(input));
+                    using var cstream = new CryptoStream(mstream, dec, CryptoStreamMode.Read);
+                    using var treader = new StreamReader(cstream);
+                    using var jreader = new JsonTextReader(treader);
+                    return new JsonSerializer().Deserialize<StateData>(jreader);
+                }
+                catch (Exception)
+                {
+                    return new StateData { IsValid = false };
+                }
             }
         }
 

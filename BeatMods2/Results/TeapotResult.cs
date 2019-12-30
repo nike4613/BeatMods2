@@ -17,13 +17,5 @@ namespace BeatMods2.Results
         public TeapotResult() : base(418) 
         {
         }
-
-        public override async Task ExecuteResultAsync(ActionContext context)
-        {
-            using var writer = new StreamWriter(context.HttpContext.Response.Body);
-            await writer.WriteLineAsync("I can't brew coffee! I'm a teapot!");
-
-            await base.ExecuteResultAsync(context);
-        }
     }
 }
