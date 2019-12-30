@@ -14,6 +14,10 @@ using System.IO;
 using System.Text;
 using System.Security.Cryptography;
 using System.Buffers;
+using BeatMods2.Models;
+using System.Runtime.Serialization;
+using Newtonsoft.Json.Serialization;
+using BeatMods2.Results;
 
 namespace BeatMods2.Controllers
 {
@@ -24,12 +28,17 @@ namespace BeatMods2.Controllers
         private GitHubAuth authSettings;
         private IHttpClientFactory httpFactory;
         private SymmetricAlgorithm stateEncAlgo;
+        private ModRepoContext repoContext;
 
-        public UsersController(GitHubAuth auth, IHttpClientFactory httpFac, SymmetricAlgorithm encAlgo)
+        public UsersController(GitHubAuth auth, 
+            IHttpClientFactory httpFac, 
+            SymmetricAlgorithm encAlgo, 
+            ModRepoContext context)
         {
             authSettings = auth;
             httpFactory = httpFac;
             stateEncAlgo = encAlgo;
+            repoContext = context;
             UpdateCurrentRandomData();
         }
 
@@ -44,10 +53,20 @@ namespace BeatMods2.Controllers
 
         private class StateData
         {
-            public string RandomState = "TODO";// TODO: generate random state and use it
+            public string RandomState = "";// Generated in UpdateCurrentRandomData, set in Login
             public string SuccessCallback = "";
             public string? FailureCallback = null;
             public string? UserData = null;
+
+            [JsonIgnore]
+            public bool IsValid = true;
+
+            [OnError]
+            internal void OnError(StreamingContext context, ErrorContext error)
+            {
+                IsValid = false;
+                error.Handled = true;
+            }
 
             public string Encrypt(SymmetricAlgorithm algo)
             {
@@ -130,6 +149,10 @@ namespace BeatMods2.Controllers
 
             var stateDe = StateData.Decrypt(stateEncAlgo, state);
 
+            if (!stateDe.IsValid) 
+                // state invalid; refuse to brew coffee
+                return this.ImATeapot();
+
             var successCb = stateDe.SuccessCallback;
             if (stateDe.UserData != null)
                 successCb = QueryHelpers.AddQueryString(successCb, UserDataParam, stateDe.UserData);
@@ -158,6 +181,8 @@ namespace BeatMods2.Controllers
             request.Headers.Add("Accept", "application/json");
 
             var response = await client.SendAsync(request);
+
+
 
             // TODO: do checking here
             GitHubAccesResponse ghResponse;
