@@ -28,6 +28,8 @@ namespace BeatMods2.Models
         public string Profile { get; set; }
         [Required]
         public string GithubToken { get; set; }
+        [Required]
+        public int GithubId { get; set; }
 
         public ICollection<User_Group_Join> Groups { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
