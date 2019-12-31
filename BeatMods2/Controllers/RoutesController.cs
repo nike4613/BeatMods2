@@ -19,6 +19,7 @@ namespace BeatMods2.Controllers
         {
             public string Routes { get; set; } = "";
             public string Login { get; set; } = "";
+            public string Authenticate { get; set; } = "";
         }
 
         public const string RoutesName = "Api_GetRoutes";
@@ -27,7 +28,8 @@ namespace BeatMods2.Controllers
             => new RoutesResponse
             {
                 Routes = Url.AbsoluteRouteUrl(RoutesName),
-                Login = Url.AbsoluteRouteUrl(UsersController.LoginName)
+                Login = Url.AbsoluteRouteUrl(UsersController.LoginName),
+                Authenticate = Url.AbsoluteRouteUrl(UsersController.AuthenticateName)
             };
     }
 }

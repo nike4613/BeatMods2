@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -57,6 +58,14 @@ namespace BeatMods2.Utilities
             foreach (byte b in ba)
                 hex.AppendFormat("{0:x2}", b);
             return hex.ToString();
+        }
+
+        public static string GetCryptoRandomHexString(int size)
+        {
+            using var rand = new RNGCryptoServiceProvider();
+            using var mem = MemoryPool<byte>.Shared.Rent(size);
+            rand.GetBytes(mem.Memory.Span.Slice(0, size));
+            return BytesToString(mem.Memory.Span.Slice(0, size));
         }
     }
 

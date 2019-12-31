@@ -47,10 +47,7 @@ namespace BeatMods2.Controllers
         private string CurrentRandomData = "hello there, you shouldn't see this!~";
         private void UpdateCurrentRandomData()
         {
-            using var rand = new RNGCryptoServiceProvider();
-            using var mem = MemoryPool<byte>.Shared.Rent(16);
-            rand.GetBytes(mem.Memory.Span);
-            CurrentRandomData = Utils.BytesToString(mem.Memory.Span);
+            CurrentRandomData = Utils.GetCryptoRandomHexString(16);
         }
 
         private class StateData
@@ -156,6 +153,7 @@ namespace BeatMods2.Controllers
             const string UserDataParam = "data";
             const string SuccessParam = "successful";
             const string ErrorParam = "error";
+            const string CodeParam = "code";
 
             var stateDe = StateData.Decrypt(stateEncAlgo, state);
 
@@ -240,9 +238,39 @@ namespace BeatMods2.Controllers
 
             var ghResponse = respObj.ToObject<GitHubAccesResponse>();
 
-            // TODO: use github response
+            if (ghResponse.TokenType != "bearer")
+            {
+                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
+                    $"API returned unknown token type {ghResponse.TokenType}"));
+            }
 
-            return Redirect(successCb);
+            repoContext.AuthCodes.ClearExpired(); // removed expired codes
+            await repoContext.SaveChangesAsync();
+
+            var newCode = Utils.GetCryptoRandomHexString(8); // keep it somewhat short
+            while (repoContext.AuthCodes.Any(s => s.Code == newCode)) // in the odd case that 2 exist at once
+                newCode = Utils.GetCryptoRandomHexString(8);
+
+            repoContext.AuthCodes.Add(new AuthCodeTempStore
+            {
+                Code = newCode,
+                GitHubBearer = ghResponse.Token
+            });
+            
+            await repoContext.SaveChangesAsync(); // these saves feel kinda gross ngl
+            // TODO: will this ever cause a race condition?
+
+            return Redirect(QueryHelpers.AddQueryString(successCb, CodeParam, newCode));
+        }
+
+        public const string AuthenticateName = "Api_UserAuthenticate";
+        [HttpPost("authenticate", Name = AuthenticateName), AllowAnonymous]
+        public async Task<IActionResult> Authenticate([FromBody] string code)
+        {
+            
+
+
+            return Ok();
         }
     }
 }
