@@ -4,15 +4,17 @@ using System.Collections.Generic;
 using BeatMods2.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace BeatMods2.Migrations
 {
     [DbContext(typeof(ModRepoContext))]
-    partial class ModRepoContextModelSnapshot : ModelSnapshot
+    [Migration("20191231041047_AddAuthCodeStore")]
+    partial class AddAuthCodeStore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

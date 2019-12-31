@@ -25,6 +25,8 @@ namespace BeatMods2.Models
             Group.ConfigureModel(modelBuilder);
             GameVersion.ConfigureModel(modelBuilder);
             Download.ConfigureModel(modelBuilder);
+
+            AuthCodeTempStore.ConfigureModel(modelBuilder);
         }
 
         public DbSet<Tag> Tags { get; set; }
@@ -33,6 +35,7 @@ namespace BeatMods2.Models
         public DbSet<Mod> Mods { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GameVersion> GameVersions { get; set; }
+        public DbSet<AuthCodeTempStore> AuthCodes { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     }
 }

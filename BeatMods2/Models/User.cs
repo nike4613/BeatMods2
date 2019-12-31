@@ -12,9 +12,9 @@ namespace BeatMods2.Models
         internal static void ConfigureModel(ModelBuilder model)
         {
             model.Entity<User>()
-                .HasAlternateKey(d => d.Name); // should be unique on target mod and type
+                .HasAlternateKey(d => d.Name);
             model.Entity<User>()
-                .HasAlternateKey(d => d.GithubToken); // should be unique on target mod and type
+                .HasAlternateKey(d => d.GithubToken);
 
             User_Group_Join.ConfigureModel(model);
         }
