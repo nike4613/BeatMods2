@@ -18,6 +18,8 @@ using BeatMods2.Models;
 using System.Runtime.Serialization;
 using Newtonsoft.Json.Serialization;
 using BeatMods2.Results;
+using System.Net;
+using Newtonsoft.Json.Linq;
 
 namespace BeatMods2.Controllers
 {
@@ -62,7 +64,7 @@ namespace BeatMods2.Controllers
             public bool IsValid = true;
 
             [OnError]
-            internal void OnError(StreamingContext context, ErrorContext error)
+            public void OnError(StreamingContext context, ErrorContext error)
             {
                 IsValid = false;
                 error.Handled = true;
@@ -153,6 +155,7 @@ namespace BeatMods2.Controllers
         {
             const string UserDataParam = "data";
             const string SuccessParam = "successful";
+            const string ErrorParam = "error";
 
             var stateDe = StateData.Decrypt(stateEncAlgo, state);
 
@@ -189,14 +192,53 @@ namespace BeatMods2.Controllers
 
             var response = await client.SendAsync(request);
 
+            var statusCode = response.StatusCode;
+            if (statusCode == HttpStatusCode.NotFound)
+            { // client id is invalid
+                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam, 
+                    "Client ID is somehow invalid; report this on the GitHub repo"));
+            }
+            else if (statusCode == HttpStatusCode.UnprocessableEntity)
+            { // the access endpoint moved
+                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
+                    "GitHub access_token endpoint moved; report this on the GitHub repo"));
+            }
+            else if (statusCode != HttpStatusCode.OK)
+            { // some other error
+                // TODO: log this error somewhere somehow with time so it can be debugged better
+                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
+                     "Unknown error accessing token via GitHub API; report this on the GitHub repo\n" + 
+                    $"Status code {(int)statusCode}\n" +
+                    $"Server time: {DateTime.Now}"));
+            }
 
-
-            // TODO: do checking here
-            GitHubAccesResponse ghResponse;
-
+            JToken respToken;
             using (var treader = new StreamReader(await response.Content.ReadAsStreamAsync()))
             using (var reader = new JsonTextReader(treader))
-                ghResponse = new JsonSerializer().Deserialize<GitHubAccesResponse>(reader);
+                respToken = await JToken.ReadFromAsync(reader);
+
+            var respObj = respToken as JObject;
+            if (respObj == null) 
+            {
+                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
+                    $"API returned unexpected JSON root type {respToken.Type}"));
+            }
+
+            if (respObj.ContainsKey("error"))
+            { // TODO: find a better way to check for this
+              // the response is an error
+                var error = respObj.ToObject<GitHubAPI.ApiErrorResponse>();
+
+                return Redirect(QueryHelpers.AddQueryString(failureCb,
+                    new Dictionary<string,string> 
+                    {
+                        { ErrorParam, $"API returned error {error.Error}" },
+                        { "description", error.ErrorDescription },
+                        { "uri", error.ErrorUri }
+                    }));
+            }
+
+            var ghResponse = respObj.ToObject<GitHubAccesResponse>();
 
             // TODO: use github response
 
