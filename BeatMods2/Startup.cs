@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Octokit;
 
 namespace BeatMods2
 {
@@ -49,19 +51,15 @@ namespace BeatMods2
             Configuration.Bind("CoreAuth", coreAuthSettings);
             services.AddSingleton(coreAuthSettings);
 
-            // TODO: move all this to Octokit
-            services.AddHttpClient();
-            services.AddHttpClient(GitHubAuth.LoginClient, c =>
-            {
-                c.BaseAddress = ghAuthSettings.BaseUri;
-                c.DefaultRequestHeaders.Add("User-Agent", "BeatMods2");
-            });
-            services.AddHttpClient(GitHubAuth.ApiClient, c =>
-            {
-                c.BaseAddress = ghAuthSettings.ApiUri;
-                c.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
-                c.DefaultRequestHeaders.Add("User-Agent", "BeatMods2");
-            });
+            var asmVersion = new SemVer.Version(Assembly.GetExecutingAssembly()
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion);
+            services.AddSingleton(asmVersion);
+
+            services.AddScoped<GitHubClient>(s =>
+                new GitHubClient(
+                    new Connection(
+                        new ProductHeaderValue("BeatMods2", 
+                            s.GetRequiredService<SemVer.Version>().ToString()))));
 
             services
                 .AddSingleton<IActionContextAccessor, ActionContextAccessor>()

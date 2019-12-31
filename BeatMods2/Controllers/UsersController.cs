@@ -20,6 +20,8 @@ using Newtonsoft.Json.Serialization;
 using BeatMods2.Results;
 using System.Net;
 using Newtonsoft.Json.Linq;
+using Octokit;
+using System.Collections.ObjectModel;
 
 namespace BeatMods2.Controllers
 {
@@ -29,19 +31,19 @@ namespace BeatMods2.Controllers
     {
         private GitHubAuth githubAuthSettings;
         private CoreAuth coreAuthSettings;
-        private IHttpClientFactory httpFactory;
         private SymmetricAlgorithm stateEncAlgo;
         private ModRepoContext repoContext;
+        private GitHubClient client;
 
         public UsersController(GitHubAuth ghAuth,
             CoreAuth coreAuth,
-            IHttpClientFactory httpFac, 
+            GitHubClient client,
             SymmetricAlgorithm encAlgo, 
             ModRepoContext context)
         {
             githubAuthSettings = ghAuth;
             coreAuthSettings = coreAuth;
-            httpFactory = httpFac;
+            this.client = client;
             stateEncAlgo = encAlgo;
             repoContext = context;
             UpdateCurrentRandomData();
@@ -109,44 +111,22 @@ namespace BeatMods2.Controllers
             [FromQuery] string? failure = null, 
             [FromQuery] string? userData = null)
         {
-            var uri = new Uri(githubAuthSettings.BaseUri!, githubAuthSettings.OauthAuthorize).ToString();
-            uri = QueryHelpers.AddQueryString(uri, new Dictionary<string, string>
+            var req = new OauthLoginRequest(githubAuthSettings.ClientId) 
             {
-                { "client_id", githubAuthSettings.ClientId },
-                { "allow_signup", "false" },
-                { "scope", string.Join(" ", githubAuthSettings.OauthScopes) },
-                { "state", new StateData 
+                State = new StateData 
                     {
                         RandomState = CurrentRandomData,
                         SuccessCallback = success,
                         FailureCallback = failure,
                         UserData = userData
-                    }.Encrypt(stateEncAlgo) }, 
-                { "redirect_uri", Url.AbsoluteRouteUrl(LoginCallbackName) }
-            });
-
-            return Ok(new { AuthTarget = new Uri(uri) });
-        }
-
-        private class GitHubAccessRequest
-        {
-            [JsonProperty("client_id")]
-            public string ClientId = "";
-            [JsonProperty("client_secret")]
-            public string ClientSecret = "";
-            [JsonProperty("code")]
-            public string Code = "";
-            [JsonProperty("state")]
-            public string State = "";
-        }
-        private class GitHubAccesResponse
-        {
-            [JsonProperty("access_token")]
-            public string Token = "";
-            [JsonProperty("scope")]
-            public string Scopes = "";
-            [JsonProperty("token_type")]
-            public string TokenType = "";
+                    }.Encrypt(stateEncAlgo),
+                AllowSignup = false,
+                RedirectUri = new Uri(Url.AbsoluteRouteUrl(LoginCallbackName))
+            };
+            foreach (var scope in githubAuthSettings.OauthScopes)
+                req.Scopes.Add(scope);
+            
+            return Ok(new { AuthTarget = client.Oauth.GetGitHubLoginUrl(req) });
         }
 
         public const string LoginCallbackName = "Api_UserLoginCallback";
@@ -177,75 +157,35 @@ namespace BeatMods2.Controllers
                 successCb = QueryHelpers.AddQueryString(successCb, SuccessParam, "true");
             }
 
-            var client = httpFactory.CreateClient(GitHubAuth.LoginClient);
-            var request = new HttpRequestMessage(HttpMethod.Post, githubAuthSettings.OauthAccess)
+            OauthToken token;
+            try
             {
-                Content = new StringContent(JsonConvert.SerializeObject(
-                    new GitHubAccessRequest
+                token = await client.Oauth.CreateAccessToken(
+                    new OauthTokenRequest(githubAuthSettings.ClientId,
+                        githubAuthSettings.ClientSecret, code)
                     {
-                        ClientId = githubAuthSettings.ClientId,
-                        ClientSecret = githubAuthSettings.ClientSecret,
-                        Code = code,
-                        State = state
-                    }), Encoding.UTF8, "application/json")
-            };
-            request.Headers.Add("Accept", "application/json");
-
-            var response = await client.SendAsync(request);
-
-            var statusCode = response.StatusCode;
-            if (statusCode == HttpStatusCode.NotFound)
-            { // client id is invalid
-                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam, 
-                    "Client ID is somehow invalid; report this on the GitHub repo"));
-            }
-            else if (statusCode == HttpStatusCode.UnprocessableEntity)
-            { // the access endpoint moved
-                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
-                    "GitHub access_token endpoint moved; report this on the GitHub repo"));
-            }
-            else if (statusCode != HttpStatusCode.OK)
-            { // some other error
-                // TODO: log this error somewhere somehow with time so it can be debugged better
-                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
-                     "Unknown error accessing token via GitHub API; report this on the GitHub repo\n" + 
-                    $"Status code {(int)statusCode}\n" +
-                    $"Server time: {DateTime.Now}"));
-            }
-
-            JToken respToken;
-            using (var treader = new StreamReader(await response.Content.ReadAsStreamAsync()))
-            using (var reader = new JsonTextReader(treader))
-                respToken = await JToken.ReadFromAsync(reader);
-
-            var respObj = respToken as JObject;
-            if (respObj == null) 
+                        RedirectUri = new Uri(Url.AbsoluteRouteUrl(LoginCallbackName))
+                    });
+            } // will not catch NotFound, Validation, or LegalRestriction because those are hard errors
+            catch (AuthorizationException e)
             {
                 return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
-                    $"API returned unexpected JSON root type {respToken.Type}"));
+                    $"GitHub returned Unauthorized: {e.Message}"));
             }
-
-            if (respObj.ContainsKey("error"))
-            { // TODO: find a better way to check for this
-              // the response is an error
-                var error = respObj.ToObject<GitHubAPI.ApiErrorResponse>();
-
-                return Redirect(QueryHelpers.AddQueryString(failureCb,
-                    new Dictionary<string,string> 
-                    {
-                        { ErrorParam, $"API returned error {error.Error}" },
-                        { "description", error.ErrorDescription },
-                        { "uri", error.ErrorUri }
-                    }));
-            }
-
-            var ghResponse = respObj.ToObject<GitHubAccesResponse>();
-
-            if (ghResponse.TokenType != "bearer")
+            catch (ForbiddenException e)
             {
                 return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
-                    $"API returned unknown token type {ghResponse.TokenType}"));
+                    $"GitHub returned Forbidden: {e.Message}"));
             }
+            catch (ApiException e)  
+            {
+                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
+                    $"GitHub returned error: {e.Message}"));
+            }
+
+            if (token.TokenType != "bearer") // don't know what to do with it
+                return Redirect(QueryHelpers.AddQueryString(failureCb, ErrorParam,
+                    $"API returned unknown token type {token.TokenType}"));
 
             var newCode = Utils.GetCryptoRandomHexString(8); // keep it somewhat short
             while (repoContext.AuthCodes.Any(s => s.Code == newCode)) // in the odd case that 2 exist at once
@@ -254,7 +194,7 @@ namespace BeatMods2.Controllers
             repoContext.AuthCodes.Add(new AuthCodeTempStore
             {
                 Code = newCode,
-                GitHubBearer = ghResponse.Token
+                GitHubBearer = token.AccessToken
             });
             
             await repoContext.SaveChangesAsync(); // these saves feel kinda gross ngl
