@@ -260,12 +260,20 @@ namespace BeatMods2.Controllers
             return Redirect(QueryHelpers.AddQueryString(successCb, CodeParam, newCode));
         }
 
+        public class AuthenticateRequest
+        {
+            [JsonProperty("code")]
+            public string Code = "";
+        }
+
         public const string AuthenticateName = "Api_UserAuthenticate";
         [HttpPost("authenticate", Name = AuthenticateName), AllowAnonymous]
-        public async Task<IActionResult> Authenticate([FromBody] string code)
+        public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest req)
         {
             repoContext.AuthCodes.ClearExpired(); // removed expired codes
             await repoContext.SaveChangesAsync();
+
+            var code = req.Code;
 
             var auth = repoContext.AuthCodes.FirstOrDefault(s => s.Code == code);
             if (auth == null)
