@@ -23,9 +23,10 @@ namespace BeatMods2.Models
         public Guid Id { get; set; }
         [Required]
         public string Name { get; set; }
+        [Required]
         public DateTime Created { get; set; }
         [Required]
-        public string Profile { get; set; }
+        public string Profile { get; set; } = "";
         [Required]
         public string GithubToken { get; set; }
         [Required]
