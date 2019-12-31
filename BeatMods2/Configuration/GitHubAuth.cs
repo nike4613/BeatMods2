@@ -15,6 +15,7 @@ namespace BeatMods2.Configuration
         public Uri? ApiUri { get; set; }
         public string OauthAuthorize { get; set; } = "";
         public string OauthAccess { get; set; } = "";
+        public string UserInfo { get; set; } = "";
         public string ClientId { get; set; } = "";
         public string ClientSecret { get; set; } = "";
         public string[] OauthScopes { get; set; } = Array.Empty<string>();

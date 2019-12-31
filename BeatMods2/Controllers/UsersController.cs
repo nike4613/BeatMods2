@@ -27,17 +27,20 @@ namespace BeatMods2.Controllers
     [ApiController, Authorize]
     public class UsersController : ControllerBase
     {
-        private GitHubAuth authSettings;
+        private GitHubAuth githubAuthSettings;
+        private CoreAuth coreAuthSettings;
         private IHttpClientFactory httpFactory;
         private SymmetricAlgorithm stateEncAlgo;
         private ModRepoContext repoContext;
 
-        public UsersController(GitHubAuth auth, 
+        public UsersController(GitHubAuth ghAuth,
+            CoreAuth coreAuth,
             IHttpClientFactory httpFac, 
             SymmetricAlgorithm encAlgo, 
             ModRepoContext context)
         {
-            authSettings = auth;
+            githubAuthSettings = ghAuth;
+            coreAuthSettings = coreAuth;
             httpFactory = httpFac;
             stateEncAlgo = encAlgo;
             repoContext = context;
@@ -106,12 +109,12 @@ namespace BeatMods2.Controllers
             [FromQuery] string? failure = null, 
             [FromQuery] string? userData = null)
         {
-            var uri = new Uri(authSettings.BaseUri!, authSettings.OauthAuthorize).ToString();
+            var uri = new Uri(githubAuthSettings.BaseUri!, githubAuthSettings.OauthAuthorize).ToString();
             uri = QueryHelpers.AddQueryString(uri, new Dictionary<string, string>
             {
-                { "client_id", authSettings.ClientId },
+                { "client_id", githubAuthSettings.ClientId },
                 { "allow_signup", "false" },
-                { "scope", string.Join(" ", authSettings.OauthScopes) },
+                { "scope", string.Join(" ", githubAuthSettings.OauthScopes) },
                 { "state", new StateData 
                     {
                         RandomState = CurrentRandomData,
@@ -175,13 +178,13 @@ namespace BeatMods2.Controllers
             }
 
             var client = httpFactory.CreateClient(GitHubAuth.LoginClient);
-            var request = new HttpRequestMessage(HttpMethod.Post, authSettings.OauthAccess)
+            var request = new HttpRequestMessage(HttpMethod.Post, githubAuthSettings.OauthAccess)
             {
                 Content = new StringContent(JsonConvert.SerializeObject(
                     new GitHubAccessRequest
                     {
-                        ClientId = authSettings.ClientId,
-                        ClientSecret = authSettings.ClientSecret,
+                        ClientId = githubAuthSettings.ClientId,
+                        ClientSecret = githubAuthSettings.ClientSecret,
                         Code = code,
                         State = state
                     }), Encoding.UTF8, "application/json")
@@ -271,7 +274,6 @@ namespace BeatMods2.Controllers
         public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest req)
         {
             repoContext.AuthCodes.ClearExpired(); // removed expired codes
-            await repoContext.SaveChangesAsync();
 
             var code = req.Code;
 
@@ -282,12 +284,14 @@ namespace BeatMods2.Controllers
                 });
             
             repoContext.AuthCodes.Remove(auth);
-            await repoContext.SaveChangesAsync();
 
             var ghKey = auth.GitHubBearer;
 
             // TODO: do something with the key (get/create user and generate JWT)
 
+            var user = repoContext.Users.FirstOrDefault(u => u.GithubToken == ghKey);
+
+            await repoContext.SaveChangesAsync();
             return Ok();
         }
     }

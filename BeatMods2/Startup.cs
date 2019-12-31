@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using BeatMods2.Configuration;
 using BeatMods2.Models;
@@ -21,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BeatMods2
 {
@@ -43,6 +45,11 @@ namespace BeatMods2
             Configuration.Bind("GithubAuth", ghAuthSettings);
             services.AddSingleton(ghAuthSettings);
 
+            var coreAuthSettings = new CoreAuth();
+            Configuration.Bind("CoreAuth", coreAuthSettings);
+            services.AddSingleton(coreAuthSettings);
+
+            // TODO: move all this to Octokit
             services.AddHttpClient();
             services.AddHttpClient(GitHubAuth.LoginClient, c =>
             {
@@ -81,7 +88,11 @@ namespace BeatMods2
             services.AddDbContext<ModRepoContext>(builder);
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => Configuration.Bind("JwtSettings", options));
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => {
+                    Configuration.Bind("JwtSettings", options);
+                    options.TokenValidationParameters.IssuerSigningKey 
+                        = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(coreAuthSettings.JwtSecret));
+                });
 
             services.AddRouting();
 
