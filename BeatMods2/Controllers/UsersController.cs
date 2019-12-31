@@ -244,9 +244,6 @@ namespace BeatMods2.Controllers
                     $"API returned unknown token type {ghResponse.TokenType}"));
             }
 
-            repoContext.AuthCodes.ClearExpired(); // removed expired codes
-            await repoContext.SaveChangesAsync();
-
             var newCode = Utils.GetCryptoRandomHexString(8); // keep it somewhat short
             while (repoContext.AuthCodes.Any(s => s.Code == newCode)) // in the odd case that 2 exist at once
                 newCode = Utils.GetCryptoRandomHexString(8);
@@ -267,8 +264,21 @@ namespace BeatMods2.Controllers
         [HttpPost("authenticate", Name = AuthenticateName), AllowAnonymous]
         public async Task<IActionResult> Authenticate([FromBody] string code)
         {
-            
+            repoContext.AuthCodes.ClearExpired(); // removed expired codes
+            await repoContext.SaveChangesAsync();
 
+            var auth = repoContext.AuthCodes.FirstOrDefault(s => s.Code == code);
+            if (auth == null)
+                return NotFound(new {
+                    error = "Code not found"
+                });
+            
+            repoContext.AuthCodes.Remove(auth);
+            await repoContext.SaveChangesAsync();
+
+            var ghKey = auth.GitHubBearer;
+
+            // TODO: do something with the key (get/create user and generate JWT)
 
             return Ok();
         }
