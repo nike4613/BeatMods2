@@ -9,9 +9,9 @@ namespace BeatMods2.Models
 {
     public enum Permission
     {
-        gameversion_add, gameversion_edit, mod_create, mod_edit, mod_reposess, user_delete,
-        group_add, group_edit, group_delete, mod_see_pending, mod_approve_deny, user_edit_groups,
-        news_edit, news_add, mod_upload_as
+        GameVersion_Add, GameVersion_Edit, Mod_Create, Mod_Edit, Mod_Reposess, User_Delete,
+        Group_Add, Group_Edit, Group_Delete, Mods_ViewPending, Mods_ApproveDeny, User_EditGroups,
+        News_Edit, News_Add, Mod_UploadAs
     }
 
     public class Group
