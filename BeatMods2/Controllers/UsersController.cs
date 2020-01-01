@@ -22,6 +22,9 @@ using System.Net;
 using Newtonsoft.Json.Linq;
 using Octokit;
 using System.Collections.ObjectModel;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace BeatMods2.Controllers
 {
@@ -226,13 +229,46 @@ namespace BeatMods2.Controllers
             repoContext.AuthCodes.Remove(auth);
 
             var ghKey = auth.GitHubBearer;
+            client.Credentials = new Credentials(ghKey);
 
-            // TODO: do something with the key (get/create user and generate JWT)
+            var ghUser = await client.User.Current();
+            var uid = ghUser.Id;
+            var user = repoContext.Users.FirstOrDefault(u => u.GithubId == uid);
+            if (user == null)
+            { // if we can't find it, create a new user
+                user = new Models.User
+                {
+                    Name = ghUser.Login,
+                    Created = DateTime.Now,
+                    GithubId = ghUser.Id,
+                    GithubToken = ghKey
+                };
+                repoContext.Users.Add(user);
 
-            var user = repoContext.Users.FirstOrDefault(u => u.GithubToken == ghKey);
+                var defaultGroup = repoContext.Groups.FirstOrDefault(g => g.Name == Group.DefaultGroupName);
+                if (defaultGroup != null)
+                    user.AddGroup(defaultGroup);
+            }
+            else
+            { // otherwise update token
+                user.GithubToken = ghKey;
+            }
 
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(coreAuthSettings.JwtSecret);
+            var descriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                }),
+                Expires = DateTime.Now + coreAuthSettings.JwtExpiry,
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
+            };
+            var jwt = tokenHandler.CreateToken(descriptor);
+            
             await repoContext.SaveChangesAsync();
-            return Ok();
+            return Ok(new { Token = tokenHandler.WriteToken(jwt) });
         }
     }
 }
