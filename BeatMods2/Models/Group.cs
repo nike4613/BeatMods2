@@ -83,7 +83,8 @@ namespace BeatMods2.Models
                 .Property(g => g.Permissions)
                 .HasConversion(
                     v => v.Select(p => p.ToString()).ToList(),
-                    v => v.Select(p => (Permission)Enum.Parse(typeof(Permission), p)).ToList());
+                    v => new HashSet<Permission>(
+                            v.Select(p => (Permission)Enum.Parse(typeof(Permission), p))));
         }
 
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -92,8 +93,10 @@ namespace BeatMods2.Models
         public const string DefaultGroupName = "default";
         [Required]
         public string Name { get; set; }
-        public List<Permission> Permissions { get; set; }
-
+        public HashSet<Permission> Permissions { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
+        public bool HasPermission(Permission perm)
+            => Permissions.Contains(perm);
     }
 }

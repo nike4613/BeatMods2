@@ -231,6 +231,8 @@ namespace BeatMods2.Controllers
             var ghKey = auth.GitHubBearer;
             client.Credentials = new Credentials(ghKey);
 
+            bool isNewUser = false;
+
             var ghUser = await client.User.Current();
             var uid = ghUser.Id;
             var user = repoContext.Users.FirstOrDefault(u => u.GithubId == uid);
@@ -244,6 +246,7 @@ namespace BeatMods2.Controllers
                     GithubToken = ghKey
                 };
                 repoContext.Users.Add(user);
+                isNewUser = true;
 
                 var defaultGroup = repoContext.Groups.FirstOrDefault(g => g.Name == Group.DefaultGroupName);
                 if (defaultGroup != null)
@@ -268,7 +271,7 @@ namespace BeatMods2.Controllers
             var jwt = tokenHandler.CreateToken(descriptor);
             
             await repoContext.SaveChangesAsync();
-            return Ok(new { Token = tokenHandler.WriteToken(jwt) });
+            return Ok(new { Token = tokenHandler.WriteToken(jwt), IsNewUser = isNewUser });
         }
     }
 }

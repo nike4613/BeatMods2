@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -33,9 +34,11 @@ namespace BeatMods2.Models
         public int GithubId { get; set; }
 
         public ICollection<User_Group_Join> Groups { get; set; } = new List<User_Group_Join>();
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
         public void AddGroup(Group group)
         {
+            if (Groups.Any(j => j.GroupId == group.Id)) return;
             var joiner = new User_Group_Join
             {
                 UserId = Id,
@@ -45,6 +48,8 @@ namespace BeatMods2.Models
             };
             Groups.Add(joiner);
         }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
+        public bool HasPermission(Permission perm)
+            => Groups.Any(j => j.Group.HasPermission(perm));
     }
 }
