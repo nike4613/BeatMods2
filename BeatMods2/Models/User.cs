@@ -14,7 +14,7 @@ namespace BeatMods2.Models
             model.Entity<User>()
                 .HasAlternateKey(d => d.Name);
             model.Entity<User>()
-                .HasAlternateKey(d => d.GithubToken);
+                .HasAlternateKey(d => d.GithubId);
 
             User_Group_Join.ConfigureModel(model);
         }
@@ -32,7 +32,19 @@ namespace BeatMods2.Models
         [Required]
         public int GithubId { get; set; }
 
-        public ICollection<User_Group_Join> Groups { get; set; }
+        public ICollection<User_Group_Join> Groups { get; set; } = new List<User_Group_Join>();
+
+        public void AddGroup(Group group)
+        {
+            var joiner = new User_Group_Join
+            {
+                UserId = Id,
+                GroupId = group.Id,
+                User = this,
+                Group = group
+            };
+            Groups.Add(joiner);
+        }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     }
 }

@@ -88,6 +88,8 @@ namespace BeatMods2.Models
 
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
+
+        public const string DefaultGroupName = "default";
         [Required]
         public string Name { get; set; }
         public List<Permission> Permissions { get; set; }
