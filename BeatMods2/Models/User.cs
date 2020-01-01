@@ -33,7 +33,8 @@ namespace BeatMods2.Models
         [Required]
         public int GithubId { get; set; }
 
-        public ICollection<User_Group_Join> Groups { get; set; } = new List<User_Group_Join>();
+        [Required]
+        public List<User_Group_Join> Groups { get; set; } = new List<User_Group_Join>();
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
         public void AddGroup(Group group)
@@ -47,9 +48,12 @@ namespace BeatMods2.Models
                 Group = group
             };
             Groups.Add(joiner);
+            group.Users.Add(joiner);
         }
 
         public bool HasPermission(Permission perm)
             => Groups.Any(j => j.Group.HasPermission(perm));
+        public IEnumerable<Permission> GetPermissions()
+            => Groups.SelectMany(j => j.Group.Permissions);
     }
 }

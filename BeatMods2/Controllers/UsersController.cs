@@ -25,6 +25,7 @@ using System.Collections.ObjectModel;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace BeatMods2.Controllers
 {
@@ -235,7 +236,10 @@ namespace BeatMods2.Controllers
 
             var ghUser = await client.User.Current();
             var uid = ghUser.Id;
-            var user = repoContext.Users.FirstOrDefault(u => u.GithubId == uid);
+            var user = await repoContext.Users
+                .Include(u => u.Groups)
+                .ThenInclude(j => j.Group)
+                .FirstOrDefaultAsync(u => u.GithubId == uid);
             if (user == null)
             { // if we can't find it, create a new user
                 user = new Models.User
@@ -248,7 +252,8 @@ namespace BeatMods2.Controllers
                 repoContext.Users.Add(user);
                 isNewUser = true;
 
-                var defaultGroup = repoContext.Groups.FirstOrDefault(g => g.Name == Group.DefaultGroupName);
+                var defaultGroup = await repoContext.Groups
+                    .FirstOrDefaultAsync(g => g.Name == Group.DefaultGroupName);
                 if (defaultGroup != null)
                     user.AddGroup(defaultGroup);
             }
@@ -256,21 +261,25 @@ namespace BeatMods2.Controllers
             { // otherwise update token
                 user.GithubToken = ghKey;
             }
+            
+            await repoContext.SaveChangesAsync();
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(coreAuthSettings.JwtSecret);
+            // TODO: figure out some way to do this that invalidates this token when the user's groups change
+            var permClaims = user.GetPermissions().Select(p => 
+                new Claim(ClaimTypes.Role, p.ToString()));
             var descriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-                }),
+                Subject = new ClaimsIdentity(permClaims.Prepend(
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()))
+                    .ToArray()),
                 Expires = DateTime.Now + coreAuthSettings.JwtExpiry,
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
             };
             var jwt = tokenHandler.CreateToken(descriptor);
             
-            await repoContext.SaveChangesAsync();
             return Ok(new { Token = tokenHandler.WriteToken(jwt), IsNewUser = isNewUser });
         }
     }

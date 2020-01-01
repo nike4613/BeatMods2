@@ -21,6 +21,8 @@ namespace BeatMods2.Models
         public Guid Id { get; set; }
         [Required]
         public string Name { get; set; }
+
+        public List<Mod_Tag_Join> Mods { get; set; } = new List<Mod_Tag_Join>();
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     }
 }

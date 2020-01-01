@@ -73,12 +73,12 @@ namespace BeatMods2.Models
         public System System { get; set; }
         public bool Required { get; set; }
 
-        public ICollection<ModRange>? DependsOn { get; set; }
-        public ICollection<ModRange>? ConflictsWith { get; set; }
+        public List<ModRange> DependsOn { get; set; } = new List<ModRange>();
+        public List<ModRange> ConflictsWith { get; set; } = new List<ModRange>();
 
-        public ICollection<Download>? Downloads { get; set; }
+        public List<Download> Downloads { get; set; } = new List<Download>();
         
-        public ICollection<Mod_Tag_Join>? Tags { get; set; }
+        public List<Mod_Tag_Join> Tags { get; set; } = new List<Mod_Tag_Join>();
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     }
 }

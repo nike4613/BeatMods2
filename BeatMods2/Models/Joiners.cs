@@ -18,6 +18,10 @@ namespace BeatMods2.Models
                 .HasOne(j => j.GameVersion)
                 .WithMany(v => v.VisibleTo)
                 .HasForeignKey(j => j.GameVersionId);
+            model.Entity<GameVersion_Group_Join>()
+                .HasOne(j => j.Group)
+                .WithMany(v => v.ExplicitlyVisibleGameVersions)
+                .HasForeignKey(j => j.GroupId);
         }
         public Guid GameVersionId { get; set; }
         public Guid GroupId { get; set; }
@@ -37,6 +41,10 @@ namespace BeatMods2.Models
                 .HasOne(j => j.User)
                 .WithMany(v => v.Groups)
                 .HasForeignKey(j => j.UserId);
+            model.Entity<User_Group_Join>()
+                .HasOne(j => j.Group)
+                .WithMany(g => g.Users)
+                .HasForeignKey(j => j.GroupId);
         }
 
         public Guid UserId { get; set; }
@@ -58,6 +66,10 @@ namespace BeatMods2.Models
                 .HasOne(j => j.Mod)
                 .WithMany(v => v.Tags)
                 .HasForeignKey(j => j.ModId);
+            model.Entity<Mod_Tag_Join>()
+                .HasOne(j => j.Tag)
+                .WithMany(t => t.Mods)
+                .HasForeignKey(j => j.TagId);
         }
 
         public Guid ModId { get; set; }

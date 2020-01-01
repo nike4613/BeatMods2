@@ -38,7 +38,7 @@ namespace BeatMods2.Models
 
         public Visibility Visibility { get; set; }
 
-        public ICollection<GameVersion_Group_Join> VisibleTo { get; set; }
+        public List<GameVersion_Group_Join> VisibleTo { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
     }
 }

@@ -94,6 +94,12 @@ namespace BeatMods2.Models
         [Required]
         public string Name { get; set; }
         public HashSet<Permission> Permissions { get; set; }
+
+        [Required]
+        public List<User_Group_Join> Users { get; set; } = new List<User_Group_Join>();
+        [Required]
+        public List<GameVersion_Group_Join> ExplicitlyVisibleGameVersions { get; set; }
+            = new  List<GameVersion_Group_Join>();
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
         public bool HasPermission(Permission perm)
