@@ -48,6 +48,7 @@ export async function requestPostRoute<T, U>(base: string, data: U): Promise<T> 
     return await fetch_api<T>(base, {
         mode: "cors",
         method: "POST",
+        headers: [["Content-Type", "application/json"]],
         body: JSON.stringify(data),
     });
 }
