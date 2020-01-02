@@ -33,6 +33,13 @@ namespace BeatMods2.Controllers
     [ApiController, Authorize]
     public class UsersController : ControllerBase
     {
+        public static object PublicRoutes(IUrlHelper url)
+            => new {
+                Login = url.AbsoluteRouteUrl(LoginName),
+                Authenticate = url.AbsoluteRouteUrl(AuthenticateName),
+                Current = url.AbsoluteRouteUrl(CurrentUserName)
+            };
+
         private GitHubAuth githubAuthSettings;
         private CoreAuth coreAuthSettings;
         private SymmetricAlgorithm stateEncAlgo;
@@ -282,5 +289,45 @@ namespace BeatMods2.Controllers
             
             return Ok(new { Token = tokenHandler.WriteToken(jwt), IsNewUser = isNewUser });
         }
+
+        public const string CurrentUserName = "Api_UserCurrent";
+        [HttpGet("current", Name = CurrentUserName)]
+        public async Task<IActionResult> Current([FromQuery] bool includeGithubInfo = false)
+        {
+            var userInfo = User;
+            var userId = new Guid(userInfo.FindFirstValue(ClaimTypes.NameIdentifier)); // get id
+
+            var dbUser = await repoContext.Users
+                .Include(u => u.Groups)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+            if (dbUser == null)
+                return NotFound(new {
+                    Error = "User not found. Please report this on the GitHub repo.",
+                    UserID = userId
+                });
+            
+            if (includeGithubInfo)
+            {
+                client.Credentials = new Credentials(dbUser.GithubToken);
+                var ghUser = await client.User.Current();
+                return Ok(new {
+                    Name = dbUser.Name,
+                    Id = dbUser.Id,
+                    Created = dbUser.Created,
+                    Profile = dbUser.Profile,
+                    Groups = dbUser.Groups.Select(j => j.GroupId),
+                    GithubName = ghUser.Login
+                });
+            }
+            else
+                return Ok(new {
+                    Name = dbUser.Name,
+                    Id = dbUser.Id,
+                    Created = dbUser.Created,
+                    Profile = dbUser.Profile,
+                    Groups = dbUser.Groups.Select(j => j.GroupId)
+                });
+        }
+
     }
 }
