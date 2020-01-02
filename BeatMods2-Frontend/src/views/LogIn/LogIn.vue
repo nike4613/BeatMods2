@@ -15,7 +15,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import Octicon from "../../components/Octicon.vue";
-import { getGithubAuthUrl } from "../../api/login";
+import { getGithubAuthUrl } from "../../api/users/login";
 
 @Component({
     components: {

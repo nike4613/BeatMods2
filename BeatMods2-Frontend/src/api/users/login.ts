@@ -1,4 +1,4 @@
-import { requestGetRoute } from "./index";
+import { prepareRoutes, routes, requestGetRoute } from "../index";
 
 export interface ILoginResponse {
     authTarget: string; // the full URL to the OAuth request for authentication
@@ -10,8 +10,9 @@ export interface ILoginRequest {
     userData?: string;
 }
 
-export function request(req: ILoginRequest): Promise<ILoginResponse> {
-    return requestGetRoute("login", req);
+export async function request(req: ILoginRequest): Promise<ILoginResponse> {
+    await prepareRoutes();
+    return await requestGetRoute(routes().users.login, req);
 }
 
 export async function getGithubAuthUrl(req: ILoginRequest): Promise<string> {
