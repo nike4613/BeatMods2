@@ -13,7 +13,8 @@ namespace BeatMods2.Models
         internal static void ConfigureModel(ModelBuilder model)
         {
             model.Entity<User>()
-                .HasAlternateKey(d => d.Name);
+                .HasIndex(d => d.Name)
+                .IncludeProperties(u => u.Id);
             model.Entity<User>()
                 .HasAlternateKey(d => d.GithubId);
 
