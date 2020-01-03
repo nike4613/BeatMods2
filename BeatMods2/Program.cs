@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BeatMods2
 {
-    public class Program
+    public sealed class Program
     {
         public static void Main(string[] args)
         {
