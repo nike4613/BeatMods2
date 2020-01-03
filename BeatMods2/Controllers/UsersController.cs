@@ -40,11 +40,11 @@ namespace BeatMods2.Controllers
                 Current = url.AbsoluteRouteUrl(CurrentUserName)
             };
 
-        private GitHubAuth githubAuthSettings;
-        private CoreAuth coreAuthSettings;
-        private SymmetricAlgorithm stateEncAlgo;
-        private ModRepoContext repoContext;
-        private GitHubClient client;
+        private readonly GitHubAuth githubAuthSettings;
+        private readonly CoreAuth coreAuthSettings;
+        private readonly SymmetricAlgorithm stateEncAlgo;
+        private readonly ModRepoContext repoContext;
+        private readonly GitHubClient client;
 
         public UsersController(GitHubAuth ghAuth,
             CoreAuth coreAuth,
@@ -76,13 +76,6 @@ namespace BeatMods2.Controllers
             [JsonIgnore]
             public bool IsValid = true;
 
-            [OnError]
-            public void OnError(StreamingContext context, ErrorContext error)
-            {
-                IsValid = false;
-                error.Handled = true;
-            }
-
             public string Encrypt(SymmetricAlgorithm algo)
             {
                 var enc = algo.CreateEncryptor();
@@ -109,7 +102,7 @@ namespace BeatMods2.Controllers
                     using var jreader = new JsonTextReader(treader);
                     return new JsonSerializer().Deserialize<StateData>(jreader);
                 }
-                catch (Exception)
+                catch
                 {
                     return new StateData { IsValid = false };
                 }
@@ -199,7 +192,7 @@ namespace BeatMods2.Controllers
                     $"API returned unknown token type {token.TokenType}"));
 
             var newCode = Utils.GetCryptoRandomHexString(8); // keep it somewhat short
-            while (repoContext.AuthCodes.Any(s => s.Code == newCode)) // in the odd case that 2 exist at once
+            while (await repoContext.AuthCodes.AnyAsync(s => s.Code == newCode)) // in the odd case that 2 exist at once
                 newCode = Utils.GetCryptoRandomHexString(8);
 
             repoContext.AuthCodes.Add(new AuthCodeTempStore
@@ -228,7 +221,7 @@ namespace BeatMods2.Controllers
 
             var code = req.Code;
 
-            var auth = repoContext.AuthCodes.FirstOrDefault(s => s.Code == code);
+            var auth = await repoContext.AuthCodes.FirstOrDefaultAsync(s => s.Code == code);
             if (auth == null)
                 return NotFound(new {
                     error = "Code not found"
@@ -311,20 +304,20 @@ namespace BeatMods2.Controllers
                 client.Credentials = new Credentials(dbUser.GithubToken);
                 var ghUser = await client.User.Current();
                 return Ok(new {
-                    Name = dbUser.Name,
-                    Id = dbUser.Id,
-                    Created = dbUser.Created,
-                    Profile = dbUser.Profile,
+                    dbUser.Name,
+                    dbUser.Id,
+                    dbUser.Created,
+                    dbUser.Profile,
                     Groups = dbUser.Groups.Select(j => j.GroupId),
                     GithubName = ghUser.Login
                 });
             }
             else
                 return Ok(new {
-                    Name = dbUser.Name,
-                    Id = dbUser.Id,
-                    Created = dbUser.Created,
-                    Profile = dbUser.Profile,
+                    dbUser.Name,
+                    dbUser.Id,
+                    dbUser.Created,
+                    dbUser.Profile,
                     Groups = dbUser.Groups.Select(j => j.GroupId)
                 });
         }
