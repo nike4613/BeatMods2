@@ -56,9 +56,9 @@ namespace BeatMods2.Models
         [Required]
         public string Name { get; set; }
         [Required]
-        public User? Author { get; set; }
+        public User Author { get; set; }
         [Required]
-        public User? UploadedBy { get; set; }
+        public User UploadedBy { get; set; }
         [Required]
         public string Description { get; set; }
         [Required]
@@ -69,7 +69,7 @@ namespace BeatMods2.Models
         public DateTime? Approved { get; set; }
         public Approval ApprovalState { get; set; }
         [Required]
-        public GameVersion? GameVersion { get; set; }
+        public GameVersion GameVersion { get; set; }
         public System System { get; set; }
         public bool Required { get; set; }
 

@@ -29,6 +29,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BeatMods2.Controllers
 {
+
+    // TODO: consider using IdentityServer4 or something instead of this... thing
     [Route("api/users")]
     [ApiController, Authorize]
     public class UsersController : ControllerBase
@@ -37,7 +39,8 @@ namespace BeatMods2.Controllers
             => new {
                 Login = url.AbsoluteRouteUrl(LoginName),
                 Authenticate = url.AbsoluteRouteUrl(AuthenticateName),
-                Current = url.AbsoluteRouteUrl(CurrentUserName)
+                Current = url.AbsoluteRouteUrl(CurrentUserName),
+                ById = url.AbsoluteRouteUrl(QueryUserId)
             };
 
         private readonly GitHubAuth githubAuthSettings;
@@ -224,7 +227,7 @@ namespace BeatMods2.Controllers
             var auth = await repoContext.AuthCodes.FirstOrDefaultAsync(s => s.Code == code);
             if (auth == null)
                 return NotFound(new {
-                    error = "Code not found"
+                    Error = "Code not found"
                 });
             
             repoContext.AuthCodes.Remove(auth);
@@ -252,6 +255,7 @@ namespace BeatMods2.Controllers
                 repoContext.Users.Add(user);
                 isNewUser = true;
 
+                // TODO: do something different for default groups
                 var defaultGroup = await repoContext.Groups
                     .FirstOrDefaultAsync(g => g.Name == Group.DefaultGroupName);
                 if (defaultGroup != null)
@@ -283,44 +287,86 @@ namespace BeatMods2.Controllers
             return Ok(new { Token = tokenHandler.WriteToken(jwt), IsNewUser = isNewUser });
         }
 
+        private async Task<object> GetUserResponse(Models.User user, bool includeGhInfo, bool includeProfile)
+        {
+            if (includeGhInfo)
+            {
+                client.Credentials = new Credentials(user.GithubToken);
+                var ghUser = await client.User.Current();
+                var obj = new
+                {
+                    user.Name,
+                    user.Id,
+                    user.Created,
+                    Groups = user.Groups.Select(g => g.GroupId),
+                    GithubName = ghUser.Login
+                };
+                if (!includeProfile)
+                    return Ok(obj);
+                else
+                {
+                    return Ok(new
+                    {
+                        obj.Name,
+                        obj.Id,
+                        obj.Created,
+                        obj.Groups,
+                        obj.GithubName,
+                        user.Profile,
+                    });
+                }
+            }
+            else
+            {
+                var obj = new
+                {
+                    user.Name,
+                    user.Id,
+                    user.Created,
+                    Groups = user.Groups.Select(g => g.GroupId),
+                };
+                if (!includeProfile)
+                    return Ok(obj);
+                else
+                {
+                    return Ok(new
+                    {
+                        obj.Name,
+                        obj.Id,
+                        obj.Created,
+                        obj.Groups,
+                        user.Profile,
+                    });
+                }
+            }
+        }
+
         public const string CurrentUserName = "Api_UserCurrent";
         [HttpGet("current", Name = CurrentUserName)]
-        public async Task<IActionResult> Current([FromQuery] bool includeGithubInfo = false)
+        public Task<IActionResult> Current([FromQuery] bool includeGithubInfo = false, [FromQuery] bool noProfile = false)
         {
             var userInfo = User;
             var userId = new Guid(userInfo.FindFirstValue(ClaimTypes.NameIdentifier)); // get id
 
+            return QueryById(userId, includeGithubInfo, noProfile);
+        }
+
+        public const string QueryUserId = "Api_UserQueryById";
+        [HttpGet("byid/:guid", Name = QueryUserId), AllowAnonymous]
+        public async Task<IActionResult> QueryById(Guid guid, [FromQuery] bool includeGithubInfo = false, [FromQuery] bool noProfile = false)
+        {
             var dbUser = await repoContext.Users
                 .Include(u => u.Groups)
-                .FirstOrDefaultAsync(u => u.Id == userId);
+                .FirstOrDefaultAsync(u => u.Id == guid);
             if (dbUser == null)
                 return NotFound(new {
-                    Error = "User not found. Please report this on the GitHub repo.",
-                    UserID = userId
+                    Error = "User not found",
+                    UserID = guid
                 });
-            
-            if (includeGithubInfo)
-            {
-                client.Credentials = new Credentials(dbUser.GithubToken);
-                var ghUser = await client.User.Current();
-                return Ok(new {
-                    dbUser.Name,
-                    dbUser.Id,
-                    dbUser.Created,
-                    dbUser.Profile,
-                    Groups = dbUser.Groups.Select(j => j.GroupId),
-                    GithubName = ghUser.Login
-                });
-            }
-            else
-                return Ok(new {
-                    dbUser.Name,
-                    dbUser.Id,
-                    dbUser.Created,
-                    dbUser.Profile,
-                    Groups = dbUser.Groups.Select(j => j.GroupId)
-                });
+
+            return Ok(await GetUserResponse(dbUser, includeGithubInfo, !noProfile));
         }
+
 
     }
 }
