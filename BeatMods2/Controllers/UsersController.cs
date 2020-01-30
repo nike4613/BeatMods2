@@ -40,7 +40,6 @@ namespace BeatMods2.Controllers
                 Login = url.AbsoluteRouteUrl(LoginName),
                 Authenticate = url.AbsoluteRouteUrl(AuthenticateName),
                 Current = url.AbsoluteRouteUrl(CurrentUserName),
-                ById = url.AbsoluteRouteUrl(QueryUserId)
             };
 
         private readonly GitHubAuth githubAuthSettings;
@@ -287,7 +286,7 @@ namespace BeatMods2.Controllers
             return Ok(new { Token = tokenHandler.WriteToken(jwt), IsNewUser = isNewUser });
         }
 
-        private async Task<object> GetUserResponse(Models.User user, bool includeGhInfo, bool includeProfile)
+        private async Task<IActionResult> GetUserResponse(Models.User user, bool includeGhInfo, bool includeProfile)
         {
             if (includeGhInfo)
             {
@@ -352,7 +351,7 @@ namespace BeatMods2.Controllers
         }
 
         public const string QueryUserId = "Api_UserQueryById";
-        [HttpGet("byid/:guid", Name = QueryUserId), AllowAnonymous]
+        [HttpGet("byid/{guid}", Name = QueryUserId), AllowAnonymous]
         public async Task<IActionResult> QueryById(Guid guid, [FromQuery] bool includeGithubInfo = false, [FromQuery] bool noProfile = false)
         {
             var dbUser = await repoContext.Users
@@ -364,7 +363,7 @@ namespace BeatMods2.Controllers
                     UserID = guid
                 });
 
-            return Ok(await GetUserResponse(dbUser, includeGithubInfo, !noProfile));
+            return await GetUserResponse(dbUser, includeGithubInfo, !noProfile);
         }
 
 
